@@ -2,8 +2,11 @@ import {
   booleanAttribute,
   ChangeDetectionStrategy,
   Component,
-  HostBinding,
+  ElementRef,
   input,
+  output,
+  signal,
+  viewChild,
 } from "@angular/core";
 
 @Component({
@@ -13,30 +16,40 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: "./calculator-button.component.css",
   host: {
-    class: "w-1/4 border-r border-b border-indigo-400",
+    class: "border-r border-b border-indigo-400",
+    "[class.w-1/4]": "!isDoubleSize()",
+    "[class.w-2/4]": "isDoubleSize()",
   },
 })
 export class CalculatorButtonComponent {
-  isCommand = input(false, {
-    transform: booleanAttribute,
-  });
-  isDoubleSize = input(false, {
-    transform: booleanAttribute,
-  });
-  isResult = input(false, {
-    transform: booleanAttribute,
-  });
-  isSpecial = input(false, {
-    transform: booleanAttribute,
-  });
-  text2xl = input(false, {
-    transform: booleanAttribute,
-  });
-  text3xl = input(false, {
-    transform: booleanAttribute,
-  });
+  isCommand = input(false, { transform: booleanAttribute });
+  isDoubleSize = input(false, { transform: booleanAttribute });
+  isResult = input(false, { transform: booleanAttribute });
+  isSpecial = input(false, { transform: booleanAttribute });
+  text2xl = input(false, { transform: booleanAttribute });
+  text3xl = input(false, { transform: booleanAttribute });
 
-  @HostBinding("class.w-2/4") get commandStyle() {
-    return this.isDoubleSize();
+  isPressed = signal(false);
+
+  onClick = output<string>();
+  contentValue = viewChild<ElementRef<HTMLButtonElement>>("button");
+
+  handleClick() {
+    const value = this.contentValue()?.nativeElement.innerText;
+    if (!value) return;
+    this.onClick.emit(value.trim());
+  }
+
+  keyboardPressedStyle(key: string) {
+    if (!this.contentValue()) return;
+
+    const value = this.contentValue()!.nativeElement.innerText;
+
+    if (value !== key) return;
+
+    this.isPressed.set(true);
+    setTimeout(() => {
+      this.isPressed.set(false);
+    }, 100);
   }
 }
