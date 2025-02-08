@@ -13,6 +13,13 @@ import { CalculatorService } from "@/calculator/services/calculator.service";
   imports: [CalculatorButtonComponent],
   templateUrl: "./calculator.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
+  styles: `
+    @reference "tailwindcss";
+
+    .force-tailwind {
+      @apply w-1/4 w-2/4;
+    }
+  `,
   host: {
     "(document:keyup)": "handleKeyboardEvent($event)",
   },
