@@ -8,6 +8,7 @@ const specialOperators = ["%", ".", "C", "=", "+/-", "BACKSPACE"];
   providedIn: "root",
 })
 export class CalculatorService {
+  maxDigits = signal(10);
   resultText = signal("0");
   subResultText = signal("0");
   lastOperator = signal("+");
@@ -79,7 +80,7 @@ export class CalculatorService {
     const firstNumber = parseFloat(this.subResultText());
     const secondNumber = parseFloat(this.resultText());
 
-    let result = 0;
+    let result: number | string = 0;
 
     if (firstNumber === 0) return;
 
@@ -101,11 +102,24 @@ export class CalculatorService {
         break;
     }
 
-    if (result.toString().length > 10) {
-      result = parseFloat(result.toString().slice(0, 10));
+    // TODO: Increase fractionDigits to 15 in toExponential() for higher precision.
+    if (result.toString().length > this.maxDigits()) {
+      const [integerPart, decimalPart] = result.toString().split(".");
+
+      if (result.toString().includes("e")) {
+        const [digits, exponential] = result.toString().split("e");
+        const sigFigs = this.maxDigits() - (`e${exponential}`.length + 1);
+        result = parseFloat(digits).toPrecision(sigFigs) + `e${exponential}`;
+      } else if (integerPart.length >= this.maxDigits()) {
+        result = Number(result).toExponential(5);
+      } else if (decimalPart) {
+        const availableDecimalPlaces =
+          this.maxDigits() - (integerPart.length + 1);
+        result = Number(result).toFixed(availableDecimalPlaces);
+      }
     }
 
-    this.resultText.set(result.toString());
+    this.resultText.set(String(result));
     this.subResultText.set("0");
     this.lastOperator.set("+");
   }
